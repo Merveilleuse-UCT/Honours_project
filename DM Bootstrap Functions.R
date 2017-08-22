@@ -70,10 +70,81 @@ repeat.dm.bootstrap <- function(e1,e2,N,h){
   return(p.values)
 }
 
+#Test
+p_vals <-repeat.dm.bootstrap(e_1, e_2, 10000, h = 1)  #Check if seed for rand.int is changing as a control measure 
+hist(p_vals)
+
+
+####Delete this later
+#Data
+
+#log. returns for ARIMA
+index.0 <- read.table("top40index.txt")
+index.1 <- as.matrix(index.0)  
+index.2 <-(t(index.1))[2:1828,1]
+index <- as.numeric(index.2)
+
+log.return <- NULL
+for(i in 1:length(index)-1){
   
-p_vals <-repeat.dm.bootstrap(e1, e2, 1000, h = 1)  #Check if seed for rand.int is changing as a control measure 
+  x <- index[i]
+  y <- index[i+1]
+  log.return[i] <-log(y/x)
+  
+}
+
+#data-frame for prophet package
+start_date <- as.Date("2012-07-01")
+end_date <- as.Date("2014-01-01") # Should be "2017-06-30" if we use the full time period, i.e w/o in- sample and out of sample
+dates <- bizseq(start_date,end_date,"actual")
+prophet_data <- data.frame(ds = dates,y = log.return[1:550])  #Note to self : remove [1:1766] If forecasting using full period
 
 
+#Model estimation
+library(forecast)
+arima.fit <- auto.arima(data$return, approximation = F, trace = F) #This also builds the best ARIMA model and it turns out that you got it right. Its the arima(2,0,2) :)
+prophet.fit <- prophet(df = prophet_data,yearly.seasonality = TRUE) 
+
+
+#Model Forecasts and residuals
+#ARIMA
+start_date <- 1766   #???
+end_date <- 1825      # ???
+period <- 1
+arima_residuals <- list()
+j = 1
+for(i in seq(start_date, end_date, period)){
+  arima_model <- arima(data$returns[1:i], order = c(2,0,2), 
+                       optim.control = list(maxit = 1000))
+  arima_pred <- predict(arima_model, n.ahead = 5, newdata = data$returns[(i+1):(i+5)])
+  arima_error <- arima_pred$pred - data$returns[(i+1):(i+5)]
+  arima_residuals[[j]] <- data.frame(ret = data$returns[(i+1):(i+5)], 
+                                     pred = as.numeric(arima_pred$pred),
+                                     error = as.numeric(arima_error))
+  j <- j + 1
+}
+do.call(rbind, arima_residuals)
+arima_five_res <- do.call(rbind, arima_residuals)
+
+plot(arima_five_res$ret, type = "l")
+lines(arima_five_res$pred, col = 2)
+
+#Prophet
+pred_period_dates <- make_future_dataframe(proph_fit,periods = 1826-550) #Dates for prediction period
+library("tidyr")
+proph_forecast <- predict(proph_fit,pred_period_dates) 
+proph_in_sample_forecast <-  proph_forecast$yhat[1:550]
+prophet_residuals <- proph_in_sample_forecast - log.return[1:550]
+
+
+  #Bootstrap
+
+e1 <- arima_five_res$error  #Qn: There's 300 of them, how to I control this? Why are there NA's?
+
+e2 <- prophet_residuals[1:300]   #Truncated this so the length of the matrices match
+
+p_vals <-repeat.dm.bootstrap(e1, e1, 1000, h = 1)  #Check if seed for rand.int is changing as a control measure 
+hist(p_vals)
 
 
 
