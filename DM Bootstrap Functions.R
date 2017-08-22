@@ -35,6 +35,7 @@ dm.bootstrap <- function(e1,e2, h, seed){
     
     set.seed(seed)
     boot_e1 <- sample(e1, l1, replace = TRUE)
+    
     set.seed(seed)
     boot_e2 <- sample(e2, l2, replace = TRUE)
     
@@ -71,7 +72,7 @@ repeat.dm.bootstrap <- function(e1,e2,N,h){
 }
 
 #Test
-p_vals <-repeat.dm.bootstrap(e_1, e_2, 10000, h = 1)  #Check if seed for rand.int is changing as a control measure 
+p_vals <- repeat.dm.bootstrap(e_1, e_2, 1e5, h = 1)  #Check if seed for rand.int is changing as a control measure 
 hist(p_vals)
 
 
@@ -150,4 +151,41 @@ hist(p_vals)
 
 
 
+# Hanjo
+#Model Forecasts and residuals
+#ARIMA
+arima_eval <- function(ret_data, start_date, end_date, period = 1){
+  
+  library(lubridate)
+  start_date <- as.Date("2013-11-01")   #???
+  end_date <- as.Date("2014-01-01")      # ???
+  period <- paste0("+", period," day")
+  for_period <- period
+  
+  arima_residuals <- list()
+  j = 1
+  for(i in seq(start_date, end_date, by = period)){
+    
+    #training
+    train <- which(prophet_data$ds < start_date)
+    test <- which(prophet_data$ds %in% seq(from = start_date,
+                                           to = (start_date + (for_period-1)), 
+                                                 by = "day"))
+    
+    arima_model <- arima(prophet_data$y[train], order = c(2,0,2), 
+                         optim.control = list(maxit = 1000))
+    
+    arima_pred <- forecast(arima_model, h = for_period)
+    arima_error <- arima_pred$mean - prophet_data$y[test]
+    arima_residuals[[j]] <- data.frame(ret = prophet_data$y[test], 
+                                       pred = as.numeric(arima_pred$mean),
+                                       error = as.numeric(arima_error))
+    j <- j + 1
+  }
+  do.call(rbind, arima_residuals)
+  arima_res <- do.call(rbind, arima_residuals)
+  return(arima_res)
+}
 
+
+arima_eval()

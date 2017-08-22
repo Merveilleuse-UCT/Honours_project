@@ -3,9 +3,9 @@
 #Student No. MBNMAR005                      **
 #*********************************************
 #*********************************************
-install.packages("dplyr")
+
+
 #---------0. i) Reading Data and some manipulation plus noise reduction----------------------
-setwd("C:/Users/Merveilleuse2/Desktop/Project")
 
 #Note to self: When the Dates data behaves, use filter to subset the in-sample and out-of-sample data by the variable date
 
@@ -83,8 +83,8 @@ m6$fit
 
 #ARIMA Modelling using forecast package: automatically chooses ####
 #install.packages("forecast")
-#library(forecast)
-#auto.arima(data$return, approximation = F, trace = F) #This also builds the best ARIMA model and it turns out that you got it right. Its the arima(2,0,2) :)
+library(forecast)
+auto.arima(data$return, approximation = F, trace = F) #This also builds the best ARIMA model and it turns out that you got it right. Its the arima(2,0,2) :)
 
 #----Separating into in-sample and out-of-sample for forecast analysis: No need to do this because we'll compare using DM Test in your paper----
 
@@ -151,6 +151,7 @@ library(prophet)
 # Creating a sequence of business days dates
 #install.packages("bizdays")
 library(bizdays)
+
 
 #To create a sequence of business days,you specify the start and end dates inside the function bizseq
 #Took data from the past 5 years
