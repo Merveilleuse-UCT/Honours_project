@@ -1,0 +1,133 @@
+---
+# IMPORTANT: Change settings here, but DO NOT change the spacing. 
+# Remove comments and add values where applicable. 
+# The descriptions below should be self-explanatory
+
+title: "Literature Review"
+subtitle: "Comparing Facebook Prophet Forecasts to those of an ARIMA Model: A Diebold-Mariano Evaluation of the JSE Top40 Index"
+
+documentclass: "elsarticle"
+
+# Comment: ----- Follow this pattern for up to 5 authors
+Author1: "Marvelous Mubenesha"  # First Author
+Ref1: "Honours Project, University of Cape Town, South Africa" # First Author's Affiliation
+Email1: "mbnmar005\\@myuct.ac.za" # First Author's Email address
+
+
+#CorrespAuthor_1: TRUE  # If corresponding author is author 3, e.g., use CorrespAuthor_3: TRUE
+
+keywords: "ARIMA Forecasting \\sep Prophet Forecasting \\sep Diebold-Mariano Evaluation" # Use \\sep to separate
+
+
+# Comment: ----- Manage headers and footers:
+#BottomLFooter: $Title$
+#BottomCFooter:
+#TopLHeader: \leftmark # Adds section name at topleft. Remove comment to add it.
+BottomRFooter: "\\footnotesize Page \\thepage\\" # Add a '#' before this line to remove footer.
+addtoprule: TRUE
+addfootrule: TRUE               # Use if footers added. Add '#' to remove line.
+bibliography: Tex/ref.bib       # Do not edit: Keep this naming convention and location.
+RemovePreprintSubmittedTo: TRUE  # Removes the 'preprint submitted to...' at bottom of titlepage
+#Journal: "Journal of Finance"   # Journal that the paper will be submitting to, if above parameter is set to TRUE.
+toc: no                         # Add a table of contents
+numbersections: yes             # Should sections (and thus figures and tables) be numbered?
+fontsize: 12pt                  # Set fontsize
+linestretch: 1.5                # Set distance between lines.
+link-citations: TRUE            # This creates dynamic links to the papers in reference list.
+output:
+  pdf_document:
+    keep_tex: TRUE
+    template: Tex/TexDefault.txt
+    fig_width: 3.5 # Adjust default figure sizes. This can also be done in the chunks of the text.
+    fig_height: 3.5
+    include:
+      in_header: Tex/packages.txt # Reference file with extra packages
+---
+
+<!-- First: Set your default preferences for chunk options: -->
+
+<!-- If you want a chunk's code to be printed, set echo = TRUE. message = FALSE stops R printing ugly package loading details in your final paper too. I also suggest setting warning = FALSE and checking for warnings in R, else you might find ugly warnings in your paper. -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 5, fig.pos="H", fig.pos = 'H')
+# Note: Include = FALSE implies the code is executed, but not printed in your pdf.
+# warning and message = FALSE implies ugly messages and warnings are removed from your pdf. These should be picked up when you execute the command chunks (code sections below) in your rmd, not printed in your paper!
+
+```
+
+
+<!-- ############################## -->
+<!-- # Start Writing here: -->
+<!-- ############################## -->
+
+# Introduction \label{Introduction}
+
+The ability to predict a stock market index relies on the basic assumption that the market in which the stock trades is inefficient. A contradicting school of thought presents the argument that stock prices follow a random walk and are therefore unpredictable. However, many assert the contrary and some have argued that the random walk is simply an ARIMA(0,1,0) and other models can be used to forecast stock prices [@fama1995random \& @cao2005comparison].Several models have been used to forecast stock prices, these can be broadly categorised according to statistical and soft computing methods[@adebiyi2014comparison]. Exploring all existing stock price forecasting models is outside the scope of this paper, instead, we seek to consider literature that builds an understanding of the framework in which forecasts of the classical ARIMA model are being compared against Facebook Prophet through a Diebold-Mariano evaluation of the JSE Top40 Index [@khashei2009improvement]. To do this, in section 2, we will review the grounds for the market efficiency assertions implicit in any attempt to generate market price forecasts. Section 3 then considers the ARIMA model and its evolution from that constructed by @box1970time to the GARCH model and recently, fuzzy time series. We consider the performance of ARIMA forecasting models by exploring studies that have used it to forecast stock prices. Thereafter, we consider Artificial Neural Networks and Hybrid models that have been compared against the ARIMA model. In section 4, we explore how incorporating an analysts' knowledge in the modelling process can yield superior forecasts through case studies that have combined analysts' forecasts to both linear and nonlinaer technical forecasting approaches. This leads us to the justification for this research project where we introduce Prophet Forecasting-at-scale and understand the value it can bring to the field of forecasting stock prices. Furthermore, we consider the formulation of the Prophet forecasting model and why it has the potential to outperform by considering the benefit of introducing an analyst in the loop during forecasting. In section 5, we compare the ARIMA model to that of Prophet from a theoretical perspective by evaluating how the models differ and why Prophet is likely to outperfromr the ARIMA model. Lastly, the Diebold-Mariano evaluation is justified as a way to compare forecasts in the context of our study given that it is model free and has relatively greater power.
+
+#  EMH and the JSE Top40 Index
+It is worth noting that the implicit assumption of this paper is that the market for the JSE Top40 Index is inefficient and can inherently be forecasted. This assumption is not without ground since studies that have conducted empirical tests on the efficiency of the JSE have yielded contradicting results [@GraterUOJ]. In 2015, @GraterUOJ used the Augmented Dickey-Fuller test and Phillips-Perron test to investigate the efficiency of the JSE between 1999 and 2014. They concluded that the JSE ALSI was not weak-form efficient and suggested that this could be because of the levels of turnover relative to the size of the market. Contrary to these findings, @Njanike2010 tested the weak-form efficiency of the JSE by comparing the excess returns of winner portfolios (only continuously traded stock portfolios with positive excess returns) to those of loser portfolios (of continuously traded stocks with positive excess losses). The weak-form EMH implies that the excess returns of winner and loser portfolios should be equal [@Njanike2010]. She found that the JSE market became increasingly efficient between 1996 to 2004 even though mean reversion was observed during the period between 1992 and 1996. Her findings suggest that the JSE market is weak-form efficient. Nonetheless, the joint hypothesis problem, as well as the small sample size used in this study means that the resulting conclusions may not be accepted with full certainty. In 2013, @van2013efficient used the Threshold Autoregressive Model to study the efficiency of stock indices in the primary and secondary sectors of the JSE. The study unified the inconsistency in the conclusions of previous studies by showing that the primary sector was efficient whereas the secondary sector rejects the EMH [@van2013efficient] .The possibility of mean reversion over some periods and the fact that the JSE has not been shown to be weak form efficient with absolute certainty means forecasting stock prices is potentially a worthy exercise.
+
+#Evolution of the ARIMA model and stock price forecasting
+The ARIMA model is a generalisation of Autoregressive Moving Average (ARMA) models which combine autoregression and moving average features [@box1970time]. It is a time series model of the form,
+$$ \Theta_p \nabla^d Y_t = \Phi_q \epsilon_t $$
+where $\nabla$ is the differencing operator, $\Theta_p$ and $\Phi_q$ are parameter vectors, $Y_t$ and $\epsilon_t$ are time series of the observed random variable and residuals respectively. The model displays linear stochastic dependence and short memory which makes it most suitable for short-term forecasts [@Baum]
+
+## Evolution of the ARIMA model
+The formulation of the Box-Jenkins methodology in 1976 was a breakthrough in time series analysis, however, the weaknesses of the model soon surfaced leading researchers to develop better performing adaptations of the model to improve its accuracy across different time series data. The Seasonal Autoregressive Integrated Moving Average (SARIMA) model was the first modification of the ARIMA model. It captures seasonality in a time series which helps to improve the model fit and has the potential to yield improved forecasts [@PennState2017]. Heteroskedasticity in some time series models led to the formulation of Autoregressive Conditional heteroskedasticity (ARCH) models by @engle1982autoregressive .Thereafter, @bollerslev1986generalized formulated the Generalized Autoregressive Conditional Heteroskedasticity (GARCH) models. The ARCH and GARCH models are an adaptation of ARIMA models that allow the variance of the residuals to be non-constant. They are therefore used to model conditional variance of time series data and have been proven to be very successful [@engle1982autoregressive]. Recently, there has been a move towards incorporating analysts’ knowledge through fuzzy logic systems to improve stock price forecasts. This approach has been adapted to ARIMA series through Fuzzy ARIMA models.
+
+##Forecasting stock prices using the ARIMA model
+
+ARIMA models have been widely used as a standard model to forecast financial data and have been shown to yield acceptable forecasting errors [@adebiyi2014comparison]. @adebiyi2014comparison used the Box-Jenkins methodology to build short-term stock price prediction models for stocks on the New York Stock Exchange(NYSE) and the Nigerian Stock Exchange(NSE). Their results showed that the prediction errors of the model were within acceptable bounds.
+
+ARIMA models rely on the assumption that residuals are heteroskedastic and normally distributed, however, some financial data displays heteroskedasticity making GARCH models more applicable. This theory is backed by a study conducted by @Muten2014 who compared the ability of ARIMA and GARCH models to forecast stock prices on the Zimbabwean Stock Exchange (ZSE). They found that the GARCH model outperforms the ARIMA model which suggests that the residuals are heteroskedastic. This is a case in point for emerging market stocks. The researchers noted that poor liquidity in the market could be a cause of the results they observed [@Muten2014].
+
+##Forecasting stock prices using alternative methods: The case of Artificial Neural Networks and Hybrid Models
+
+Though the ARIMA model is tractable given that it is simple, interpretable and yields forecasts that are significantly accurate when compared to other methods, it has its limitations. The most popular being its inability to capture non-linear patterns in data, even after its evolution from the standard form to more adaptable formulations [@moreno2011artificial]. Over the past two to three decades with the evolution of computational power and statistical advancement, other stock price prediction methods have been proposed, the most prominent being a machine learning approach called Artificial Neural Networks(ANNs)[@lin2009short]. Also popular amongst the ‘new’ stock price forecasting approaches are hybrids of existing methods that incorporate the benefits of different approaches.  
+
+Artificial Neural Networks (ANNs) are a multi-layered perceptron that consist of a sorted triple $(N, V, \omega)$. $N$ is a set of neurons in a multi-layered structure, V a set $\{\,(j,k)|j,k \in \mathbb{N}\,\}$ of connections of elements in the network and $\omega$ a function that defines the weights of connections between neurons [@kriesel2007brief]. Artificial Neural networks apply iterated optimization of model parameters in the form of weights conditional on observed values to ‘learn’ [@segaran2007programming].Several studies have compared ARIMA model forecasts to ANN and their conclusions are contradictory.  
+
+Researchers have found that the performance of either method depends on the nature of the data and forecasting problem [@kihoro2004seasonal]. Stock price data is proposed to be nonlinear which suggests that nonlinear approaches have the potential to produce better forecasts than linear models. Furthermore, ANNs make no assumptions about the distribution of the errors as compared to the linear ARIMA model [@adebiyi2014comparison]. @adebiyi2014comparison compared NYSE stock index forecasts of an ARIMA model to those of an ANN and found that the forecasting accuracy of the ANN model was superior to that of the ARIMA model. It is evident that ANN are preferred to ARIMA models as a model free, nonlinear alternative. However, the model construction of an ANN requires trial and error to initialize parameter estimates and these parameters are not easily interpretable by analysts [@moreno2011artificial]. Researchers have found different ways to guide analysts in this respect. In 1996, @wang1996stock proposed an ARIMA-based ANN to forecast the medium-term price of the Taiwan Stock Exchange Weighted Stock Index (TSEWSI). They used the Box-Jenkins methodology to difference the series and then trained the data on a neural network with initialisations that were guided by their observations of the ARIMA model. This approach yielded forecasts with an acceptable prediction accuracy based on residual analysis of the out-of-sample data. Wang and Leu therefore concluded that the ARIMA-based Neural Network outperformed a Neural Network trained using raw stock price data [@wang1996stock]. @zhang2009stock used a combination of the backpropagation algorithm from Neural Networks with Improved Bacterial Chemotaxis Optimization (IBCO) to build a model that forecasts the S&P 500 stock index by minimizing the mean square error. Model forecasts were evaluated through simulation experiments and the results led to the conclusion that the hybrid model produced superior forecasts [@zhang2009stock]. This study further highlighted the potential that nonlinear approaches have in forecasting stock prices. An issue that arises with such methods is the complexity of the proposed models which limits the flexibility of unseasoned analysts to adjust model parameters as a way of improving forecasting accuracy. As we will see, Prophet forecasting elegantly deals with this issue in the form of a nonlinear, Generalized Additive Model (GAM).
+
+#Analyst in the loop and Prophet Forecasting-at-scale
+
+##Analyst in the loop
+
+The stock price forecasting approaches considered so far are automated and apply technical data analysis methods to generate stock price forecasting models. However, studies that have compared pure technical approaches to those that incorporate the analysts’ knowledge in a quasi-Bayesian form have been shown to be superior at predicting market prices [@givoly1984quality \& @guerard1989combining]. The first instance of combining time-series model forecasts and an analysts forecasts to obtain superior forecasts of a stocks annual earnings can be dated to 1989. @guerard1989combining used an additive model to combine consensus security analyst forecasts from the S&P Annual Earnings forecaster and annual earnings forecasts generated by an ARIMA model with a constant. The combined model that was estimated using ordinary least squares reduced the mean square error of the time series and analysts forecasts from 1.28 and 1.27, respectively to 1.04. These results suggest that analysts can substantially reduce forecasting errors by combining both approaches [@guerard1989combining]. @zahedi2015application applied the same overarching principle when they used principle component analysis to determine an appropriate input variable, which they then used to train an ANN in an attempt to predict stock prices on the Tehran Stock Exchange. Their model yielded acceptable forecasting errors and performed better than the pure ANN which further reiterates the potential of incorporating an analysts’ knowledge to improve stock price forecasts, in both linear and nonlinear models.
+
+##Prophet: Forecasting-at-scale
+
+The methods introduced above that incorporate both technical analysis approaches and analysts’ forecasts highlight the potential of incorporating technical analysis with an analysts’ knowledge. However, the ARIMA model recommended by @guerard1989combining suffers from the nonlinearity shortcomings of ARIMA models. Moreover, the ANN used by @zahedi2015application is promising but introduces the shortfalls of ANNs which include difficulty in interpreting model parameters, the limitation of analysts to flexibly adjust the model using their experience in the field and the need for an input variable. Facebook prophet elegantly tackles these problems by combining automatic forecasting with an analyst in the loop in the form of a quasi-Bayesian modelling approach.
+
+Facebook prophet is a forecasting tool which combines a configurable model that includes performance analysis evaluation with the interaction of an analyst in the loop [@taylor2017forecasting]. The analysts’ knowledge is incorporated into the model building process through easily interpretable initial parameters that can be modified and interactive feedback when forecasts under-perform [@taylor2017forecasting]. Prophet enables analysts’ to generate a large number of forecasts across various time series to produce credible forecasts-at-scale[@taylor2017forecasting]. The generalized additive model is of the form;
+
+$$ y(t) = g(t) + s(t) +  h(t) + \epsilon_t.$$
+
+
+$g(t)$ represents the growth component that is modelled using a generalized form of the logistic population growth model and is of the form, 
+$$g(t) = \frac{C(t)}{1+exp(-(k+\boldsymbol{a}(t)^T \delta(t-(b+\boldsymbol{a}(t)^T \gamma)))}$$, where $C(t)$ represents the carrying capacity of the growth component and can be modelled using a polynomial function of time, the simplest being a constant or linear model. $(k+\boldsymbol{a}(t)^T\delta)$ is the growth rate factor with the $\boldsymbol{a}(t)^T\delta$ term enabling the forecaster to choose where the growth rate changes( i.e change points). $(b+\boldsymbol{a}(t)^T \gamma)$ is the adjusted offset parameter. The growth component of the model is generalized with two useful features that allow the carrying capacity and growth rate of the model to vary with time. The model enables an analyst to manually define when and how the growth rate changes at different change points [@taylor2017forecasting]. This feature is particularly useful for forecasting stock price data since analysts are able to incorporate market shocks that lead to the growth rate either decreasing, increasing or remaining constant.s(t) is the seasonal component with periodicity P and is given by,
+$$s(t) = \sum_{n = -N}^{N}c_n \exp(j\frac{2\pi nt}{P})$$
+
+it uses the standard Fourier series to incorporate yearly and weekly seasonality into the model. Analysts can thus use prior knowledge to account for the effects of holidays and other periodicities into the forecasting model, another element that is desirable when forecasting stock prices.
+
+Lastly, h(t) is the holiday and events component that enables analysts to incorporate shocks that do not follow a periodic pattern but still have an effect on the price of a stock. Holidays and events are modelled using ;
+$$ h(t) = \sum_{j = 1}^{L}\kappa_j \boldsymbol{1}(t \in D_j) \label{eqn5}
+$$
+
+Where $\kappa$ is normally distributed and $D_j$ is a set of past and future dates where holidays or events occur.
+
+Prophet translates model estimation into a curve-fitting exercise. This is done using Penalized Maximum Likelihood Optimization that finds the maximum posterior estimates for the parameters [@taylor2017forecasting]. Thereafter, the package automatically evaluates the forecasts by comparing the Simulated Historical Forecast (SHF) errors of baseline forecasting methods (including ARIMA forecasts) to those of Prophet. SHF errors are forecast errors generated from random points in the history of the time series model. In Prophet forecasting-at-scale, SHF errors are compared visually to allow the analysts to quickly adjust the interpretable parameters.
+
+#Comparing ARIMA model to Prophet Forecasting-at-scale model
+
+The studies that have been discussed in this literature review suggest that prophet forecasting could lead to significantly improved forecasts when compared against an ARIMA model. Prophet forecasting seamlessly incorporates automatic forecasting with an analyst in the loop and is potentially applicable to a wide range of forecasting applications including time series with idiosyncratic features. This is in comparison to ARIMA models which are limited to linear time series and work best when used to generate short-term forecasts [@Baum]. Additionally, Prophets formulation is flexible and does not need the time series values to be taken over regular intervals, this means that missing values can be well handled without affecting results. This is in contrast to the ARIMA model which requires a time series that has been recorded over regular intervals. Furthermore, Prophet forecasting-at-scale is model free whereas ARIMA models assume that the residuals are heteroscedastic and normally distributed. These assumptions have been violated by some stock price data and were the motivation for the development of GARCH models. Nonetheless, the ARIMA model is one of the simplest and widely used approaches for forecasting stock prices.
+
+As has been highlighted above, the modelling approach and assumptions of Prophet forecasting-at-scale differ to those of an ARIMA model. Since the two methods differ, the Diebold-Mariano evaluation (DM Test) is preferred as a means of testing forecasting accuracy. This is because the DM Test is a model free test of forecasting accuracy. It is applicable to a wide range of situations from multi-period forecasts, non-Gaussian forecast residuals, non-quadratic loss functions and even serially correlated data. Furthermore, because it does not require data to be split into in-sample, and out-of-sample sets, the test has more power [@Mariano2000].
+
+
+#Conclusion
+In this literature review, we have reviewed the foundations for the ARIMA model and how it has been adapted to improve stock price forecasting accuracy. We noted that the many adaptations of ARIMA models have been successful in improve forecasting accuracy, but, the linearity of ARIMA models means that the degree at which it can improve is limited. We then considered ANNs which are one of the most popular stock price forecasting alternative models. Studies have show that the nonlinearity of ANNs improve forecasting accuracy at the cost of interpretability and simplicity. Hybrids of the ARIMA and ANN where shown to improve model accuracy even further, but the complexity of the resulting models makes them less tractable. The benefits of incorporating an analysts' knowledge into a forecasting model was reviewed and this idea was the motivation for Prophet forecasting. Prophet is a simple, modifiable and interpretitive nonlinear model that incorporates an analysts knowledge and uses a quasi-Bayesiam approach to estimate model parameters. Reviewing the literature that pertains to Prophet highlighted the strong potential that Prophet has to outperform an ARIMA model. The Diebold-Mariano evaluation method was used because it has more power and could reduce bias when comparing different forecasting approaches since it is model free.
+
+<!-- Make title of bibliography here: -->
+<!-- \newpage -->
+# References  
