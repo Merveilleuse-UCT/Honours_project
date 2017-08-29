@@ -2,10 +2,10 @@
 # IMPORTANT: Change settings here, but DO NOT change the spacing. 
 # Remove comments and add values where applicable. 
 # The descriptions below should be self-explanatory
-title: "Hanjo's Rmarkdown Template"
+title: "Draft paper"
 #subtitle: "This will appear as Right Header"
-Author: "Hanjo"  # First Author
-Student: "15290743"
+Author: "Marvelous Mubenesha"  # First Author
+Student: "MBNMAR005"
 bibliography: Tex/ref.bib       # Do not edit: Keep this naming convention and location.
 output:
   pdf_document:
