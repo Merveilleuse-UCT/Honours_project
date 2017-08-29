@@ -1,0 +1,246 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{url}
+\usepackage{appendix}
+\usepackage[british]{babel}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
+\usepackage[round]{natbib}
+\bibliographystyle{natbib}
+\def\bibsection{\section*{References}}
+
+% Wrap around which gives all figures included the [H] command, or places it "here". This can be tedious to code in Rmarkdown.
+\usepackage{float}
+\let\origfigure\figure
+\let\endorigfigure\endfigure
+\renewenvironment{figure}[1][2] {
+    \expandafter\origfigure\expandafter[H]
+} {
+    \endorigfigure
+}
+
+\let\origtable\table
+\let\endorigtable\endtable
+\renewenvironment{table}[1][2] {
+    \expandafter\origtable\expandafter[H]
+} {
+    \endorigtable
+}
+
+\bibpunct[:]{(}{)}{;}{a}{,}{,}
+
+\renewcommand{\baselinestretch}{1.5}
+
+\begin{document}
+
+\begin{titlepage}
+
+\begin{center}
+{\Huge \bf Hanjo's Rmarkdown Template}\\
+\today\\
+A Student (student number 15290743)\\
+{\tt 15290743@uct.co.za}
+\end{center}
+
+\begin{abstract}
+Abstract to be written here. The abstract should not be too long and
+should provide the reader with a good understanding what you are writing
+about. Academic papers are not like novels where you keep the reader in
+suspense. To be effective in getting others to read your paper, be as
+open and concise about your findings here as possible. Ideally, upon
+reading your abstract, the reader should feel he / she must read your
+paper in entirety.
+\noindent
+Keywords: literature, methodology, research,   results, structure, template.
+\end{abstract}
+\end{titlepage}
+
+\pagenumbering{arabic}
+
+\section{\texorpdfstring{Introduction
+\label{Introduction}}{Introduction }}\label{introduction}
+
+References are to be made as follows: Fama and French (1997, 33) and
+Grinold and Kahn (2000) Such authors could also be referenced in
+brackets (Grinold and Kahn 2000) and together (Fama and French 1997 \&
+Grinold and Kahn (2000)). Source the reference code from
+scholar.google.com by clicking on ``cite'' below article name. Then
+select BibTeX at the bottom of the Cite window, and proceed to copy and
+paste this code into your ref.bib file, located in the directory's Tex
+folder. Open this file in Rstudio for ease of management, else open it
+in your preferred Tex environment. Add and manage your article details
+here for simplicity - once saved, it will self-adjust in your paper.
+
+\begin{quote}
+I suggest renaming the top line after @article, as done in the template
+ref.bib file, to something more intuitive for you to remember. Do not
+change the rest of the code. Also, be mindful of the fact that bib
+references from google scholar may at times be incorrect. Reference
+Latex forums for correct bibtex notation.
+\end{quote}
+
+To reference a section, you have to set a label using
+``\textbackslash{}label'' in R, and then reference it in-text as e.g.:
+section \ref{Data}.
+
+Writing in Rmarkdown is surprizingly easy - see
+\href{https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf}{this
+website} cheatsheet for a summary on writing Rmd writing tips.
+
+\section{\texorpdfstring{Data \label{Data}}{Data }}\label{data}
+
+Discussion of data should be thorough with a table of statistics and
+ideally a figure.
+
+In your tempalte folder, you will find a Data and a Code folder. In
+order to keep your data files neat, store all of them in your Data
+folder. Also, I strongly suggest keeping this Rmd file for writing and
+executing commands, not writing out long pieces of data-wrangling. In
+the example below, I simply create a ggplot template for scatter plot
+consistency. I suggest keeping all your data in a data folder.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Draft_Paper_files/figure-latex/Figure1-1} 
+
+}
+
+\caption{Caption Here \label{Figure1}}\label{fig:Figure1}
+\end{figure}
+
+To reference the plot above, add a ``\textbackslash{}label'' after the
+caption in the chunk heading, as done above. Then reference the plot as
+such: As can be seen, figure \ref{Figure1} is excellent. The nice thing
+now is that it correctly numbers all your figures (and sections or
+tables) and will update if it moves. The links are also dynamic.
+
+I very strongly suggest using ggplot2 (ideally in combination with
+dplyr) using the ggtheme package to change the themes of your figures.
+
+Also note the information that I have placed above the chunks in the
+code chunks for the figures. You can edit any of these easily - visit
+the Rmarkdown webpage for more information.
+
+Here follows another figure from built-in ggplot2 data:
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Draft_Paper_files/figure-latex/figure2-1} 
+
+}
+
+\caption{Diamond Cut Plot \label{lit}}\label{fig:figure2}
+\end{figure}
+
+\section{Methodology}\label{methodology}
+
+\subsection{Subsection}\label{subsection}
+
+Ideally do not overuse subsections. It equates to bad writing.\footnote{This
+  is an example of a footnote by the way. Something that should also not
+  be overused.}
+
+\subsection{Math section}\label{math-section}
+
+Equations should be written as such:
+
+\begin{align} 
+\beta = \sum_{i = 1}^{\infty}\frac{\alpha^2}{\sigma_{t-1}^2} \label{eq1} \\ 
+\int_{x = 1}^{\infty}x_{i} = 1 \notag
+\end{align}
+
+If you would like to see the equations as you type in Rmarkdown, use \$
+symbols instead (see this for yourself by adjusted the equation):
+
+\[
+\beta = \sum_{i = 1}^{\infty}\frac{\alpha^2}{\sigma_{t-1}^2} \\ 
+\int_{x = 1}^{\infty}x_{i} = 1
+\]
+
+\begin{align} 
+    y_t &= c + B(L) y_{t-1} + e_t   \label{eq2}    \\ \notag 
+    e_t &= H_t^{1/2}  z_t ; \quad z_t \sim  N(0,I_N) \quad \& \quad H_t = D_tR_tD_t \\ \notag
+        D_t^2 &= {\sigma_{1,t}, \dots, \sigma_{N,t}}   \\ \notag
+        \sigma_{i,t}^2 &= \gamma_i+\kappa_{i,t}  v_{i, t-1}^2 +\eta_i  \sigma_{i, t-1}^2, \quad \forall i \\ \notag
+        R_{t, i, j} &= {diag(Q_{t, i, j}}^{-1}) . Q_{t, i, j} . diag(Q_{t, i, j}^{-1})  \\ \notag
+        Q_{t, i, j} &= (1-\alpha-\beta)  \bar{Q} + \alpha  z_t  z_t'  + \beta  Q_{t, i, j} \notag
+\end{align}
+
+Noten that in \ref{eq2} I have aligned the equations by the equal signs.
+I also want only one tag, and I create spaces using ``quads''.
+
+See if you can figure out how to do complex math using the two examples
+provided in \ref{eq1} and \ref{eq2}.
+
+\section{Results}\label{results}
+
+Tables can be included as follows. Use the \emph{xtable} (or kable)
+package for tables. Table placement = H implies Latex tries to place the
+table Here, and not on a new page (there are, however, very many ways to
+skin this cat. Luckily there are many forums online!).
+
+To reference calculations \textbf{in text}, \emph{do this:} From table
+\ref{tab1} we see the average value of mpg is 20.98.
+
+Including tables that span across pages, use e.g.:
+
+\hfill
+
+\section{Lists}\label{lists}
+
+To add lists, simply using the following notation
+
+\begin{itemize}
+\item
+  This is really simple
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Just note the spaces here - writing in R you have to sometimes be
+    pedantic about spaces\ldots{}
+  \end{itemize}
+\item
+  Note that Rmarkdown notation removes the pain of defining
+  \LaTeX environments!
+\end{itemize}
+
+\section{Conclusion}\label{conclusion}
+
+I hope you find this template useful. Remember, stackoverflow is your
+friend - use it to find answers to questions. Feel free to write me a
+mail if you have any questions regarding the use of this package feel
+free to email me. To cite this package, simply type
+citation(``Texevier'') in Rstudio to get the citation for Katzke (2017)
+(Note that uncited references in your bibtex file will not be included
+in References).
+
+\section*{References}\label{references}
+\addcontentsline{toc}{section}{References}
+
+\hypertarget{refs}{}
+\hypertarget{ref-fama1997}{}
+Fama, Eugene F, and Kenneth R French. 1997. ``Industry Costs of
+Equity.'' \emph{Journal of Financial Economics} 43 (2). Elsevier:
+153--93.
+
+\hypertarget{ref-grinold2000}{}
+Grinold, Richard C, and Ronald N Kahn. 2000. ``Active Portfolio
+Management.'' McGraw Hill New York, NY.
+
+\hypertarget{ref-Texevier}{}
+Katzke, N.F. 2017. \emph{Texevier: Package to Create Elsevier Templates
+for Rmarkdown}. Stellenbosch, South Africa: Bureau for Economic
+Research.
+
+\newpage
+\renewcommand{\baselinestretch}{1}
+\nocite{*}
+\bibliography{}
+
+\end{document}
