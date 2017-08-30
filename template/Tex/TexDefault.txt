@@ -32,6 +32,8 @@
     \endorigtable
 }
 
+\def\tightlist{}
+
 \bibpunct[:]{(}{)}{;}{a}{,}{,}
 
 \renewcommand{\baselinestretch}{1.5}
