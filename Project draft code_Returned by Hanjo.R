@@ -4,56 +4,73 @@
 #*********************************************
 #*********************************************
 
-#---------0. i) Reading Data and some manipulation plus noise reduction----------------------
-setwd("C:/Users/Merveilleuse2/Desktop/Project")
+#setwd("~/Honours_project")
 
-#Note to self: When the Dates data behaves, use filter to subset the in-sample and out-of-sample data by the variable date
+#---------0. i) import data----------------------------------------------------------------------
 
-#Transposing index from row of data to column because excel doesnt work on your PC anymore
-index.0 <- read.table("top40index.txt") #Top40 Price index 01/07/2012 - 30/06/2017
+#library(readxl)
+top40index <- read_excel("~/Honours_project/top40index.xlsx", 
+                         col_types = c("date", "numeric"))
 
-#Error message explained: because the data is a row in excel, its reading the price index values as
-#                         un-named independent/explanatory var of 1 obs. The msg lets you know its named them V1 -v1827 
+#Data cleaning : removing duplicates
+index <- top40index[1:1827,]  #warning message is because data is being duplicated repeatedly. Duplicates start after row 1827
+attach(index)
+#head(data) 
 
-#Transpose: This can be done in one line but i did it in steps to avoid errors and for readability
-#**********
-index.1 <- as.matrix(index.0)  #Convert data-frame to a matrix for easy manipulation
-index.2 <-(t(index.1))[2:1828,1]#Transpose the matrix then slice out non-numeric values i.e the heading
-index <- as.numeric(index.2)   #Convert values that have been read as strings into numbers
+#Calculating returns and log returns from price index
+#*****************************************************
+#library(PerformanceAnalytics)
+returns <- CalculateReturns(as.ts(index[,2]))[-1]
+log.returns <- CalculateReturns(as.ts(index[,2]), method = "log")[-1]
 
-#Calculating log returns from price index
-#*****************************************
-## Hanjo check
-library(PerformanceAnalytics)
-log.return_hanjo <- CalculateReturns(as.ts(index), method = "log")[-1]  ##Marv: Looks like this is a more elegant/automated way of calculating log returns
+#Exploratory data analysis
+#**************************
+#Outliers
+#boxplot(returns, log.returns, names = c("returns","log returns"), main = "Boxplots of Returns and Log Returns on full sample")  #Comment : looks like there are some outliers eventhough outliers are 'relatively' clustered
+
+#Basic plots for returns and log returns
+
+#par(mfrow = c(1,2))
+#plot(returns, type = "l", main = "Returns on Price Index 07/2010 - 07/2017")
+#plot(density(returns, adjust = 3), main = "Distribution of Returns on Price Index 07/2010 - 07/2017",col = 2, lty = 3) 
+
+#plot(log.returns, type = "l", main = "Log return on Price Index 07/2010 - 07/2017")
+#plot(density(log.returns, adjust = 3), main = "Distribution of Returns on Price Index 07/2010 - 07/2017", col = 2, lty = 3) 
+#TO THINK ABOUT: CONSIDER SUPERIMPOSING THE STANDARD NORMAL DENSITY ONTO THE DENSITY PLOTS FOR CONTEXTUAL INTEPRETATION
+
+#Further Data Cleaning: Formal outlier tests for time series
+#************************************************************
+library(tsoutliers)  # conducts multiple tests for outliers #Reference Chen and Liu;s as authors : https://stats.stackexchange.com/questions/104882/detecting-outliers-in-time-series-ls-ao-tc-using-tsoutliers-package-in-r-how
+library(ggpubr)
+returns.outlier.detection <- tsoutliers::tso(as.ts(returns), types = c("AO","IO","LS","TC","SLS"), maxit.iloop = 10)
+log.returns.outlier.detection <- tsoutliers::tso(as.ts(log.returns),types = c("AO","IO","LS","TC","SLS"), maxit.iloop = 10)
+
+returns.outlier.detection  # two additive outliers which appear in log return as well
+log.return.outlier.detection  #Several outliers detected
+#Further investigation shows that these outliers occur when return large in abs value. See : log.returns[c(299,302,348,1144,1156,1540)]
+
+library(ggplot2)
+dates <- index[2:1827,1]
+data.ggplot <- as.data.frame(cbind(dates,returns,log.returns))
+head(data.ggplot)
+
+dev.off()  #need to do this for ggplot to work
+ggplot(data = data.ggplot,aes(date, returns))+geom_point(na.rm = TRUE)
+#Try to colour the outliers in a different colour
+
+#Looking for the outliers? they occured on these dates : data.ggplot[c(299,302,348,1144,1156,1540),]
+#How I'm dealing with them? Keep and move on, they're part of what happend and ideally, we'd like our forecasting model to adapt to such?????
 
 
-log.return <- NULL
-for(i in 1:length(index)-1){
-  
-  x <- index[i]
-  y <- index[i+1]
-  log.return[i] <-log(y/x)
-  
-}
-head(log.return); head(log.return_hanjo)
+#Comments
+#first plots look stationary which is a good place to start for the ARIMA model :D
+#second plots look like dbn of log return is standard normal :). Formal tests will be done
+#____________________________________________________________________
 
-#Some plots: for graphical understanding of the data
-#****************************************************
 
-plot(index, type = "l", main = "Price Index 07/2010 - 07/2017")
-
-par(mfrow = c(2,1))
-plot(log.return, type = "l", main = "Log return on Price Index 07/2010 - 07/2017")
-plot(density(log.return, adjust = 3), col = 2, lty = 3) #Nothing is visible on the plot coz of scale
-#Looks stationary which is a good place to start for the ARIMA model :D
 
 #----- 0. ii) Dataframe of log returns and log prices for dplyr -------------------
-data <- data.frame(
-  price   = log(index)[1:1826],
-  returns = log.return
-)   #Consider price from day one to second last day to match length of returns data. Is this ok? 
-head(data)  #Just to have a look at what things look like
+
 
 
 #------------------------1. ARIMA Modelling----------------------------------------
@@ -71,27 +88,45 @@ head(data)  #Just to have a look at what things look like
 # ```{r, include = F}
 # knitr::opts_chunk$set(echo = F, message = F)
 # ```
+#Partitioning data into in-sample and out-of-sample data
+in.samp.returns <- returns[1:1566] #So that the out-of-sample period is a year from 01/08/2016 - 31/07/2017
+in.samp.log.returns<- log.returns[1:1566]  
+in.samp.dates <- index[1:1566,1]   #index is the main imported dataframe
 
-library(dplyr)
-#ACF
-data %>% select(returns) %>% acf  #Guide for ma component ma(2)
-#PACF
-data %>% select(returns) %>% pacf  #Guide for ar component ar(2), ar(5), ar(30)
-#Looks like there could be weekly(ar(5???)) and monthly seasonality
+oos.returns <- returns[1567:1826]
+oos.log.returns <- log.returns[1567:1826]
+oos.dates <- index[1567:1826,1]
 
-#Fitting possible ARIMA models (model 1 - model 9)
+#Box-Jenkins Methodology
 
-## Hanjo - remember to only conduct these test on the in-sample data :-), not the whole sample ####
+#Step 1: Formally testing stationarity/Unit root tests
+library(tseries)   #for Augmented Dickey-Fuller test
+adf.test(in.samp.returns) 
+adf.test(in.samp.log.returns) # both have p < 0.01 therefore we reject the null. Data is stationary 
 
-m1 <- data%>%do(fit = arima(data$returns, order = c(2,0,0))) #This approach uses dplyr notation but it takes longer to run and we loose access to other estimation results like the residuals
-## Hanjo - it takes longer to run because of the fact that dplyr evaluates the function first
-m2 <- data%>%do(fit = arima(data$returns, order = c(0,0,2)))
-m3 <- data%>%do(fit = arima(data$returns, order = c(0,0,5)))
-#m4 <-system.time(arima(data$returns, order = c(0,0,30))) #This one takes long to run too
-m5 <- arima(data$returns, order = c(2,0,2))
-m6 <- data%>%do(fit = arima(data$returns, order = c(2,0,5)))
-#m7 <- arima(data$returns, order = c(2,0,30)) #This one takes too long to run too
+#Step 2: ACF and PACF plots for model identification
+#Returns
+acf(in.samp.returns, main = "RETURNS") #ma(2)
+pacf(in.samp.returns, main = "RETURNS") #ar(2), ar(30)
 
+#Log returns
+acf(in.samp.log.returns, main = "LOG RETURNS")  #ma(2)
+pacf(in.samp.log.returns, main = "LOG RETURNS")  #ar(2), ar(30)
+
+#ma and ar(30) could be overfitting and since model is for forecasting, I want it to be parsimonious ->
+#looks like there could be seasonality but its below the bandwith 
+
+#Step 3: Fitting possible ARIMA models (model 1 - model 9)
+
+#Returns
+m1 <- arima(in.samp.returns, order = c(0,0,2))
+m2 <- arima(in.samp.returns, order = c(2,0,0))
+m3 <- arima(in.samp.returns, order = c(2,0,2))
+
+#w/ ar(30)
+m4 <- arima(in.samp.returns, order = c(30,0,0))
+m5 <- arima(in.samp.returns, order = c(30,0,2))
+#####stopped here
 
 m1$fit
 m2$fit
@@ -208,13 +243,6 @@ for(i in 1:length(return_pred)){
   
 }
 
-#Detour: Excl when sending to Hanjo. Did this for interests sake and for fun!!!!####
-par(mfrow=c(1,1))
-plot(index[1767:1826], type = "l", main = "Price(black) vs Forecasts(blue) with forecast bounds(red)",ylab = "Price",ylim=c(min(Price_hat.l), max(Price_hat.u)))
-lines(Price_hat, col = 'blue')
-lines(Price_hat.u, col = 'red')
-lines(Price_hat.l,col = 'red')
-
 
 #------------------------------2. Prophet Model---------------------------------------------
 
@@ -271,8 +299,8 @@ e_2 <- proph_in_sample_forecast - log.return[1:1766]   # y_hat minus y
 #3.1.3 DM Test  
 dm.test(e_1,e_2)  #p = 0.6582 =>  Fail to reject the Null for in-sample
 
-  
-  
+
+
 #3.2 Out of sample(1767:1826)
 #3.2.1 Arima Forecast residuals
 e_arima <- log.return[1767:1826] - log.pred  #log.pred is the 60 periods ahead forecast using arima defined in section on Forecasting ARIMA
