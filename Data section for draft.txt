@@ -1,0 +1,14 @@
+-The raw data used in this analysis are daily closing prices of the *equally weighted{market cap?}* FTSE/JSE Top40 index for the period dd/mm/yyyy to dd/mm/yyyy.
+-The choice to use a post-crisis sampling period is consistent with the methodology employed by *CITE: Jiang et el(2016)* in analysing analysing
+stock markets after the financial crisis . Furthermore, the choice of the starting date is consistent with what the International Monetary Fund(IMF) considers to be the post-crisis period (Strauss- see proposal). 
+
+-The data was transformed into returns and log returns for forecasting purposes since
+		- stock price returns are generally considered independent
+		- a means of preventing issues with spurious regression *cite*
+		- noise
+		- standard practice
+-We consider both returns and log returns as a means of comparing if the nature of the transformation can influence the comparative performance of the forecasting mmodels
+The returns data will be denoted by __ and were evaluated using the formula ____ whilst log returns will be denoted by ____ and were evaluated using the formula ____ .
+
+- The data, which was sourced from Datastream, has no missing values but excludes non-trading days such as weekends and holidays. However, it was cleaned to remove duplicates and identify outliers. 
+it was necessary that the data be cleaned to identify the presence of outliers and 
